@@ -8,42 +8,41 @@ This program is intended to browse games on your MiSTer device,
 select a game, and write the path to an NFC tag
 so you can boot the game using the [NFC script by Wizzo](https://github.com/wizzomafizzo/mrext/blob/main/docs/nfc.md)
 
-The user interface is more or less finished, I do not have an NFC reader
-so I am posting the unfinished script online in case someone wants to
-either make Pull Requests to implement the logic to do that, or help me out by
-telling me how to write to the tags via the linux command line. Or if
-figure it out by reading online / guesswork , or I buy an NFC reader.
-
-If you want to help but dont have programming knowledge, but have an NFC reader/writer
-and a linux machine, we can figure it out together.
-Or if someone can lend me an NFC reader/writer, I should be able to figure it out.
+The user interface is more or less finished, I do not have an NFC reader,
+but Wizzo and Symm has implemented functions in the nfc tools to help out
+this project. It is not far off before it is ready for testing.
 
 ## TODO
 
 ### The logic to write to an NFC tag
 
-I won't say it is as simple as copy pasting in a Linux command to write text to
-an NFC tag. But it is more or less the last thing needed to do that.
-
-Probably not but I might need to add some UI stuff to pick types of NFC tags,
-I imagine this can be handled automatically.
+More or less finished. Currently working on more advanced features related to this
+like being able to update the mappings database (needed to use amiibos, or reuse
+tags for other functions, or testing commands, or some commands that only work
+using this feature)
 
 ### The logic to read from an NFC tag
 
-I won't say it is as simple as copy pasting in a Linux command to read text from
-an NFC tag. But it is more or less the last thing needed to do that.
-This is just if you want to see the path to the game of a tag thats already written.
+More or less finished.
 
 ### Browsing inside zip files
 
-This is just a bit tedious labor, I might not do it before reading and writing
-to tags is implemented. This is not a hard step, its just a bit tedious and
-requires a bit of work. I have the basic idea of how I will acomplish it in my mind.
+This is now more or less finished,
+expect there to be some bugs, but currently it works.
+
+### A commands pallate
+
+I want the user to be able to browse from a list of commands to flash to the card
+or write to the mappings database. Including just letting you use a keyboard to
+type in the command manually. I havent started this yet, but such a feature should
+be quite trivial. 
 
 ### More fluff
 
 I might like to add a bit more flare, like filtering what folders and files you
 see when you browse maybe more small things like this.
+I'll also try to just add support for the cool new features Wizzo has added to
+his project.
 
 ## Havent tested yet
 
