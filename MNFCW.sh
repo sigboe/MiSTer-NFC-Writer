@@ -131,6 +131,9 @@ _depends() {
 		sleep 10
 		_exit 1
 	fi
+
+	# commented out for testing purpouse
+	#[[ -x "${nfcCommand}" ]] || _error "${nfcCommand} not found" "1"
 }
 
 main() {
@@ -225,7 +228,6 @@ _commandPalette() {
 			echo "${fileSelected}"
 			;;
 		Commands)
-			#TODO: implement a palette for commands here
 			text="$(_craftCommand)"
 			echo "${text}"
 			;;
@@ -318,6 +320,7 @@ _EOF_
 	case "${?}" in
 	0)
 		#yes button
+		#TODO this is wrong
 		_Write
 		;;
 	1 | 255)

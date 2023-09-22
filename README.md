@@ -14,6 +14,16 @@ this project. It is not far off before it is ready for testing.
 
 ## TODO
 
+Not complete list of tasks to do
+
+- [ ] Vet the regex used to check validity of URLs
+- [ ] Rework reading tags (requires upstream changes)
+- [ ] Give option to update/add entry to mapping database from the read menu
+- [ ] Write a function to just add add/overwrite an entry in the mappings database
+- [ ] All English language messages should be reworded after the ux is more finalized
+
+## Status
+
 ### The logic to write to an NFC tag
 
 More or less finished. Currently working on more advanced features related to this
@@ -38,9 +48,9 @@ Haven't tested it on huge libraries zipped.
 
 ### A commands pallate
 
-I want the user to be able to browse from a list of commands to flash to the card
-or write to the mappings database. Including just letting you use a keyboard to
-type in the command manually. This feature is more or less done
+Browse from a list of commands to flash to the card or write to the mappings
+database. Including just letting you use a keyboard to type in the
+command manually. This feature is more or less done
 
 ### More fluff
 
