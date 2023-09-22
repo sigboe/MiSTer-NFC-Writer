@@ -534,7 +534,6 @@ _map() {
 
 _dbEdit() {
 	local oldMap arrayIndex line lineNumber match_uid match_text text menuOptions selected replacement_match_text message
-	map="nfc.csv"
 	mapfile -t -O 1 -s 1 oldMap < "${map}"
 	echo "${oldMap[@]}"
 
