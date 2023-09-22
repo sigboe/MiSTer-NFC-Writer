@@ -138,7 +138,7 @@ main() {
 		"Read"     "Read NFC Tag"
 		"Write"    "Write ROM file paths to NFC Tag"
 		"Mappings" "Edit the mappings database"
-		#"Settings" "Options for ${title}"
+		"Settings" "Options for ${title}"
 		"dbEdit"   "CSV editor, will be merged into Mappings"
 		"About"    "About this program"
 	)
@@ -330,6 +330,30 @@ _EOF_
 		;;
 	esac
 
+}
+
+_Settings() {
+	local menuOptions selected
+	menuOptions=(
+		"Enable"     "Enable NFC service"
+		"Disable"    "Disable NFC service"
+	)
+
+	selected="$(dialog \
+		--backtitle "${title}" \
+		--menu "Choose one" \
+		22 77 16 "${menuOptions[@]}" 3>&1 1>&2 2>&3 >"$(tty)")"
+
+	case "${selected}" in
+		Enable)
+			"${nfcCommand}" -service start || { _error "Unable to start the NFC service"; return; }
+			_msgbox "The NFC service started"
+			;;
+		Disable)
+			"${nfcCommand}" -service stop || { _error "Unable to stop the NFC service"; return; }
+			_msgbox "The NFC service stopped"
+			;;
+	esac
 }
 
 _About() {
@@ -594,9 +618,9 @@ _writeTag() {
 	local txt
 	txt="${1}"
 
-	"${nfcCommand}" -service stop || { _error "Unable to stop NFC service"; return; }
-	"${nfcCommand}" -write "${txt}" || { _error "Unable to write NFC Tag"; "${nfcCommand}" -service start;  return; }
-	"${nfcCommand}" -service start || _error "Unable to start NFC service"
+	"${nfcCommand}" -service stop || { _error "Unable to stop the NFC service"; return; }
+	"${nfcCommand}" -write "${txt}" || { _error "Unable to write the NFC Tag"; "${nfcCommand}" -service start;  return; }
+	"${nfcCommand}" -service start || _error "Unable to start the NFC service"
 
 	_msgbox "${txt} \n successfully written to NFC tag"
 }
