@@ -5,11 +5,125 @@ title="MiSTer NFC Writer"
 scriptdir="$(dirname "$(readlink -f "${0}")")"
 version="0.1"
 fullFileBrowser="false"
+#TODO thoroughly test this regex
+url_regex="^(http|https|ftp)://[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}(/.*)?$"
 basedir="/media/fat/"
-basedir="${HOME}"
+[[ -d "${basedir}" ]] || basedir="${HOME}"
 nfcCommand="nfc.sh"
 map="/media/fat/nfc.csv"
-mapHeader"match_uid,match_text,text"
+mapHeader="match_uid,match_text,text"
+cmdPalette=(
+	"system" "This command will launch a system"
+	"random" "This command will launch a game a random for the given system"
+	"ini" "Loads the specified MiSTer.ini file and relaunches the menu core if open"
+	"get" "Perform an HTTP GET request to the specified URL"
+	"key" "Press a key on the keyboard using its uinput code"
+	"coinp1" "Insert a coin/credit for player 1"
+	"coinp2" "Insert a coin/credit for player 2"
+	"command" "This command will run a MiSTer Linux command directly"
+)
+consoles=(
+	"AdventureVision" "Adventure Vision"
+	"Amiga" "Amiga"
+	"Amstrad" "Amstrad CPC"
+	"AmstradPCW" "Amstrad PCW"
+	"Apogee" "Apogee BK-01"
+	"AppleI" "Apple I"
+	"AppleII" "Apple IIe"
+	"Arcade" "Arcade"
+	"Arcadia" "Arcadia 2001"
+	"Arduboy" "Arduboy"
+	"Atari2600" "Atari 2600"
+	"Atari5200" "Atari 5200"
+	"Atari7800" "Atari 7800"
+	"Atari800" "Atari 800XL"
+	"AtariLynx" "Atari Lynx"
+	"AcornAtom" "Atom"
+	"BBCMicro" "BBC Micro/Master"
+	"BK0011M" "BK0011M"
+	"Astrocade" "Bally Astrocade"
+	"Chip8" "Chip-8"
+	"CasioPV1000" "Casio PV-1000"
+	"CasioPV2000" "Casio PV-2000"
+	"ChannelF" "Channel F"
+	"ColecoVision" "ColecoVision"
+	"C64" "Commodore 64"
+	"PET2001" "Commodore PET 2001"
+	"VIC20" "Commodore VIC-20"
+	"EDSAC" "EDSAC"
+	"AcornElectron" "Electron"
+	"FDS" "Famicom Disk System"
+	"Galaksija" "Galaksija"
+	"Gamate" "Gamate"
+	"GameNWatch" "Game & Watch"
+	"GameGear" "Game Gear"
+	"Gameboy" "Gameboy"
+	"Gameboy2P" "Gameboy (2 Player)"
+	"GBA" "Gameboy Advance"
+	"GBA2P" "Gameboy Advance (2 Player)"
+	"GameboyColor" "Gameboy Color"
+	"Genesis" "Genesis"
+	"Sega32X" "Genesis 32X"
+	"Intellivision" "Intellivision"
+	"Interact" "Interact"
+	"Jupiter" "Jupiter Ace"
+	"Laser" "Laser 350/500/700"
+	"Lynx48" "Lynx 48/96K"
+	"SordM5" "M5"
+	"MSX" "MSX"
+	"MacPlus" "Macintosh Plus"
+	"Odyssey2" "Magnavox Odyssey2"
+	"MasterSystem" "Master System"
+	"Aquarius" "Mattel Aquarius"
+	"MegaDuck" "Mega Duck"
+	"MultiComp" "MultiComp"
+	"NES" "NES"
+	"NESMusic" "NESMusic"
+	"NeoGeo" "Neo Geo/Neo Geo CD"
+	"Nintendo64" "Nintendo 64"
+	"Orao" "Orao"
+	"Oric" "Oric"
+	"ao486" "PC (486SX)"
+	"OCXT" "PC/XT"
+	"PDP1" "PDP-1"
+	"PMD85" "PMD 85-2A"
+	"PSX" "Playstation"
+	"PocketChallengeV2" "Pocket Challenge V2"
+	"PokemonMini" "Pokemon Mini"
+	"RX78" "RX-78 Gundam"
+	"SAMCoupe" "SAM Coupe"
+	"SG1000" "SG-1000"
+	"SNES" "SNES"
+	"SNESMusic" "SNES Music"
+	"SVI328" "SV-328"
+	"Saturn" "Saturn"
+	"MegaCD" "Sega CD"
+	"QL" "Sinclair QL"
+	"Specialist" "Specialist/MX"
+	"SuperGameboy" "Super Gameboy"
+	"SuperGrafx" "SuperGrafx"
+	"SuperVision" "SuperVision"
+	"TI994A" "TI-99/4A"
+	"TRS80" "TRS-80"
+	"CoCo2" "TRS-80 CoCo 2"
+	"ZX81" "TS-1500"
+	"TSConf" "TS-Config"
+	"AliceMC10" "Tandy MC-10"
+	"TatungEinstein" "Tatung Einstein"
+	"TurboGrafx16" "TurboGrafx-16"
+	"TurboGrafx16CD" "TurboGrafx-16 CD"
+	"TomyTutor" "Tutor"
+	"UK101" "UK101"
+	"VC4000" "VC4000"
+	"CreatiVision" "VTech CreatiVision"
+	"Vector06C" "Vector-06C"
+	"Vectrex" "Vectrex"
+	"WonderSwan" "WonderSwan"
+	"WonderSwanColor" "WonderSwan Color"
+	"X68000" "X68000"
+	"ZXSpectrum" "ZX Spectrum"
+	"ZXNext" "ZX Spectrum Next"
+)
 
 _depends() {
 	if ! [[ -x "$(command -v dialog)" ]]; then
@@ -23,9 +137,9 @@ main() {
 	menuOptions=(
 		"Read"     "Read NFC Tag"
 		"Write"    "Write ROM file paths to NFC Tag"
-		"Commands" "Write commands to NFC Tag"
 		"Mappings" "Edit the mappings database"
 		#"Settings" "Options for ${title}"
+		"dbEdit"   "CSV editor, will be merged into Mappings"
 		"About"    "About this program"
 	)
 
@@ -40,6 +154,7 @@ main() {
 
 _Read() {
 	local nfcSCAN nfcUID nfcTXT
+	#TODO bug wizzo about adding a feature to suspend launching games so we can read tags without interrupting the program
 	[[ -f "/tmp/NFCSCAN" ]] && rm /tmp/NFCSCAN
 	_yesno "Scan NFC Tag then continue" --yes-label "Continue" --no-label "Back" || return
 	nfcSCAN="$(</tmp/NFCSCAN)"
@@ -47,58 +162,137 @@ _Read() {
 	nfcUID="${nfcSCAN%,*}"
 	[[ -z "${nfcSCAN}" ]] && { _error "Tag not read" ; _Read ; }
 	[[ -n "${nfcSCAN}" ]] && _msgbox "Tag contents: ${nfcTXT}\n Tag UID: ${nfcUID}"
+	#TODO change to yesno with extra button to do things like remap using mapping file and copy contents to new tag
 }
 
 _Write() {
-	local fileSelected extension gameName message
-	fileSelected="$(_fselect "${basedir}")"
-	[[ ! -f "${fileSelected//.zip\/*/.zip}" ]] && { _error "No file was selected." ; return ; }
-	fileSelected="${fileSelected//$basedir}"
-	extension="${fileSelected##*.}"
-	extension="${extension,,}"
-	fileSize="$(du -h "${fileSelected}")"
-	fileSize="${fileSize%%	*}"
-	txtSize="$(echo -n "${fileSelected}" | wc --bytes)"
-
+	local fileSelected message txtSize
+	text="$(_commandPalette)"
+	txtSize="$(echo -n "${text}" | wc --bytes)"
 	read -rd '' message <<_EOF_
 The following file was selected:
-${fileSelected}
+${text}
 
 The NFC Tag needs to be able to fit at least ${txtSize} Bytes to write this tag
 _EOF_
+	_yesno "${message}" --title "${title}"  --yes-label "Write to Tag" --extra-button --extra-label "Write to Map"
+	answer="${?}"
+	[[ -z "${text}" ]] && { _msgbox "Nothing selected for writing" ; return ; }
+	[[ "${text}" =~ ^\*\*command:* ]] && { _msgbox "Writing system commands to NFC tags are disabled" ; return ; }
+	case "${answer}" in
+		0)
+			_writeTag "${text}"
+			;;
+		3)
+			# Extra button
+			#TODO _writeTextToMap
+			_msgbox "Feature not implemented yet, but you can currently do this through dbEdit (or Mappings if I have come as far as merging those two yet)"
+			;;
+		1|255)
+			return
+			;;
+	esac
+}
 
-	_yesno "${message}" --title "${gameName}"  --ok-label "Write" #--extra-button --extra-label "Delete"
+# Gives the user the ability to enter text manually, pick a file, or use a command palette
+# Usage: _commandPalette
+# Returns a text string
+# Example: text="$(_commandPalette)"
+_commandPalette() {
+	local menuOptions selected
+	menuOptions=(
+		"Input"     "Input text manually, requires a keyboard"
+		"Pick"    "Pick a file, including files inside zip files"
+		"Commands" "Craft a custom command using a command palette"
+	)
 
-	case $? in
-	1 | 255)
-		# cancel or esc
-		return
-		;;
+	selected="$(dialog \
+		--backtitle "${title}" \
+		--cancel-label "Exit" \
+		--default-item "${selected}" \
+		--menu "Choose one" \
+		22 77 16 "${menuOptions[@]}" 3>&1 1>&2 2>&3 >"$(tty)")"
 
-	# extra-button
-	#3)
-	#	#delete
-	#	rm "${fileSelected}" || {
-	#		_error "Unable to delete file!!"
-	#		return
-	#	}
-	#	_msgbox "${fileSelected} deleted."
-	#	return
-	#	;;
+	case "${selected}" in
+		Input)
+			inputText="$( _inputbox "Replace match text" "${match_text}" || return )"
+			echo "${inputText}"
+			;;
+		Pick)
+			fileSelected="$(_fselect "${basedir}")"
+			[[ ! -f "${fileSelected//.zip\/*/.zip}" ]] && { _error "No file was selected." ; return ; }
+			fileSelected="${fileSelected//$basedir}"
+			echo "${fileSelected}"
+			;;
+		Commands)
+			#TODO: implement a palette for commands here
+			text="$(_craftCommand)"
+			echo "${text}"
+			;;
 	esac
 
-	"${nfcCommand}" -service stop || { _error "Unable to stop NFC service"; return; }
-	"${nfcCommand}" -write "${fileSelected}" || { _error "Unable to write NFC Tag"; "${nfcCommand}" -service start;  return; }
-	"${nfcCommand}" -service start || _error "Unable to start NFC service"
-
-	_msgbox "${fileSelected} \n successfully written to NFC tag"
 }
 
-_Commands() {
-	_msgbox "This feature has not been implemented yet"
+# Build a command using a command palette
+# Usage: _craftCommand
+_craftCommand(){
+	local command selected console
+	# Test if function is called recursively
+	if [[ "${FUNCNAME[0]}" != "${FUNCNAME[1]}" ]]; then
+		command="**"
+	else
+		command="||"
+	fi
+	selected="$(dialog \
+		--backtitle "${title}" \
+		--cancel-label "Exit" \
+		--default-item "${selected}" \
+		--menu "Choose one" \
+		22 77 16 "${cmdPalette[@]}" 3>&1 1>&2 2>&3 >"$(tty)")"
+	command="${command}${selected}"
+
+	case "${selected}" in
+		system | random)
+			console="$(dialog \
+				--backtitle "${title}" \
+				--menu "Choose one" \
+				22 77 16 "${consoles[@]}" 3>&1 1>&2 2>&3 >"$(tty)")"
+			command="${command}${console}"
+			echo "${command}"
+			;;
+		ini)
+			ini="$(dialog \
+				--backtitle "${title}" \
+				--radiolist "Choose one" \
+				22 77 16 1 one off 2 two off 3 three off 4 four off 3>&1 1>&2 2>&3 >"$(tty)")"
+			command="${command}${ini}"
+			echo "${command}"
+			;;
+		get)
+			http="$(_inputbox "Enter URL" "https://" || return )"
+			[[ "${http}" =~ ${url_regex} ]] || { _error "${http} doesnt look like an URL?" ; return ; }
+			command="${command}${http}"
+			_yesno "Do you wish to execute an additional command?" && command="${command}$(_craftCommand)"
+			echo "${command}"
+			;;
+		coinp1 | coinp2)
+			coin="$(_inputbox "Enter number" "1" || return )"
+			[[ "${coin}" =~ ^-?[0-9]+$ ]] || { _error "${coin} is not a number" ; return ; }
+			command="${command}${coin}"
+			echo "${command}"
+			;;
+		command)
+			linuxcmd="$(_inputbox "Enter Linux command" "reboot" || return )"
+			[[ -x "${linuxcmd%% *}" ]] || { _error "${linuxcmd%% *} from ${linuxcmd} does not seam to be a valid command" ; return ; }
+			command="${command}${linuxcmd}"
+			echo "${command}"
+			;;
+	esac
+
 }
+
 _Mappings() {
-	local nfcSCAN nfcUID nfcTXT
+	local nfcSCAN nfcUID nfcTXT description
 	[[ -f "/tmp/NFCSCAN" ]] && rm /tmp/NFCSCAN
 	_yesno "Scan NFC Tag then continue" --yes-label "Continue" --no-label "Back" || return
 	nfcSCAN="$(</tmp/NFCSCAN)"
@@ -113,21 +307,37 @@ _Mappings() {
 Tag contents: ${nfcTXT}
 Tag UID: ${nfcUID}
 
-Do you want to overwrite the mapping for this NFC tag? (NFC tags only have a write once memory, but your MiSTer can remember that you want this NFC tag to do something else)
+Do you want to overwrite the mapping for this NFC tag?
 _EOF_
-	[[ -n "${mappedText}" ]] && read -rd '' descriptionExtra <<_EOF_
+	[[ -n "${mappedText}" ]] && read -rd '' description <<_EOF_
+${description}
 Current mappedText: ${mapMatchText}
 current mappedMatch: ${mapMatchText}
 _EOF_
-	[[ -n "${nfcSCAN}" ]] && _yesno "${description}\n${descriptionExtra}" || return
-	_msgbox "Feature not implemented yet"
+	[[ -n "${nfcSCAN}" ]] && _yesno "${description}" --yes-label Overwrite --no-label Back --extra-button  --extra-button --extra-label "Update Mapped"
+	case "${?}" in
+	0)
+		#yes button
+		_Write
+		;;
+	1 | 255)
+		# cancel or esc
+		return
+		;;
+	3)
+		#extra button
+		_map "${nfcUID}" "$(_fselect)"
+		;;
+	esac
 
 }
+
 _About() {
 	local about githash builddate gitbranch
 	githash="$(git --git-dir="${scriptdir}/.git" rev-parse --short HEAD)"
 	gitbranch="$(git --git-dir="${scriptdir}/.git" rev-parse --abbrev-ref HEAD)"
 	builddate="$(git --git-dir="${scriptdir}/.git" log -1 --date=short --pretty=format:%cd)"
+	#TODO actually write an about page
 	read -rd '' about <<_EOF_
 ${title} ${version}-${gitbranch}-${builddate} + ${githash}
 
@@ -242,10 +452,10 @@ _browseZip() {
 			if [[ "${entry%/}" != "${currentDir}/"* ]]; then
 				relativePath="${entry#"$currentDir"}"
 				if [[ ${relativePath} == *"/"* ]]; then
-					[[ "${currentDirList[-2]}" == "${relativePath%%/*}/" ]] && continue 
+					[[ "${currentDirList[-2]}" == "${relativePath%%/*}/" ]] && continue
 					currentDirList+=( "${relativePath%%/*}/" )
-				else 
-					[[ "${currentDirList[-2]}" == "${relativePath}" ]] && continue 
+				else
+					[[ "${currentDirList[-2]}" == "${relativePath}" ]] && continue
 					currentDirList+=( "${relativePath}" )
 				fi
 
@@ -282,6 +492,113 @@ _browseZip() {
 			;;
 		esac
 	done
+}
+
+# Map or remap filepath or command for a given NFC tag (written to local database)
+# Usage: _map "UID" "Text"
+_map() {
+	local uid txt
+	uid="${1}"
+	txt="${2}"
+	[[ -e "${map}" ]] ||  printf "match_uid,match_text,text\n" >> "${map}"
+	grep -q "^${uid}" "${map}" && sed -i "/^${uid}/d" "${map}"
+	printf "%s,,%s\n" "${uid}" "${txt}" >> "${map}"
+}
+
+_dbEdit() {
+	local oldMap arrayIndex line lineNumber match_uid match_text text menuOptions selected replacement_match_text message
+	map="nfc.csv"
+	mapfile -t -O 1 -s 1 oldMap < "${map}"
+	echo "${oldMap[@]}"
+
+	mapfile -t arrayIndex < <( _numberedArray "${oldMap[@]}" )
+
+	line="$(dialog \
+		--backtitle "${title}" \
+		--menu "${mapHeader}" \
+		22 77 16 "${arrayIndex[@]//\"/}" 3>&1 1>&2 2>&3 >"$(tty)" )"
+
+	#set -x
+	#exec &> /tmp/log
+	[[ -z "${line}" ]] && return
+	lineNumber=$((line + 1))
+	match_uid="$(cut -d ',' -f 1 <<< "${oldMap[$line]}")"
+	match_text="$(cut -d ',' -f 2 <<< "${oldMap[$line]}")"
+	text="$(cut -d ',' -f 3 <<< "${oldMap[$line]}")"
+	#set +x
+
+	menuOptions=(
+		"1" "${match_uid}"
+		"2" "${match_text}"
+		"3" "${text}"
+	)
+
+	selected="$(dialog \
+		--backtitle "${title}" \
+		--menu "${mapHeader}" \
+		22 77 16 "${menuOptions[@]}" 3>&1 1>&2 2>&3 >"$(tty)")"
+
+	case "${selected}" in
+	1)
+		# Replace match_uid
+		# will break out read into a function before putting it here
+		;;
+	2)
+		# Replace match_text
+		replacement_match_text="$( _inputbox "Replace match text" "${match_text}" || return )"
+		read -rd '' message <<_EOF_
+Replace:
+${match_uid},${match_text},${text}
+With:
+${match_uid},${replacement_match_text},${text}
+_EOF_
+		_yesno "${message}" || return
+		sed -i "${lineNumber}c\\${match_uid},${replacement_match_text},${text}" "${map}"
+		;;
+	3)
+		# Replace text
+		replacement_text="$(_commandPalette)"
+		[[ -z "${replacement_text}" ]] && { _msgbox "Nothing selected for writing" ; return ; }
+		read -rd '' message <<_EOF_
+Replace:
+${match_uid},${match_text},${text}
+With:
+${match_uid},${match_text},${replacement_text}
+_EOF_
+		_yesno "${message}" || return
+		sed -i "${lineNumber}c\\${match_uid},${match_text},${replacement_text}" "${map}"
+		;;
+	esac
+
+}
+
+# Returns array in a numbered fashion
+# Usage: _numberedArray "${array[@]}"
+# Returns:
+# 1 first_element 2 second_element ....
+_numberedArray() {
+	local array index
+	array=("$@")
+	index=1
+
+	for element in "${array[@]}"; do
+		printf "%s\n" "${index}"
+		printf "%s\n" "\"${element}\""
+		((index++))
+	done
+}
+
+# Write text string to physical NFC tag
+# Usage: _writeTag "Text"
+_writeTag() {
+	local txt
+	txt="${1}"
+
+	"${nfcCommand}" -service stop || { _error "Unable to stop NFC service"; return; }
+	"${nfcCommand}" -write "${txt}" || { _error "Unable to write NFC Tag"; "${nfcCommand}" -service start;  return; }
+	"${nfcCommand}" -service start || _error "Unable to start NFC service"
+
+	_msgbox "${txt} \n successfully written to NFC tag"
 }
 
 # Ask user for a string
@@ -372,13 +689,13 @@ _isInArray() {
 	local array=("${@}")
 	[[ "${#array}" -eq 0 ]] && return 1
 
-  for item in "${array[@]}"; do
-    if [[ "${string}" == "${item}" ]]; then
-      return 0
-    fi
-  done
+	for item in "${array[@]}"; do
+		if [[ "${string}" == "${item}" ]]; then
+			return 0
+		fi
+	done
 
-  return 1
+	return 1
 }
 
 _depends
