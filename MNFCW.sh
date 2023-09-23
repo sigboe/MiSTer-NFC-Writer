@@ -11,7 +11,14 @@ basedir="/media/fat/"
 [[ -d "${basedir}" ]] || basedir="${HOME}"
 nfcCommand="nfc.sh"
 map="/media/fat/nfc.csv"
+[[ -f "${map}" ]] || map="nfc.csv"
 mapHeader="match_uid,match_text,text"
+nfcStatus="$("${nfcCommand}" --service status)"
+if [[ "${nfcStatus}" == "nfc service running" ]]; then
+	nfcStatus="true"
+else
+	nfcStatus="false"
+fi
 cmdPalette=(
 	"system" "This command will launch a system"
 	"random" "This command will launch a game a random for the given system"
@@ -137,6 +144,7 @@ _depends() {
 }
 
 main() {
+	export selected
 	menuOptions=(
 		"Read"     "Read NFC Tag"
 		"Write"    "Write ROM file paths to NFC Tag"
@@ -146,12 +154,10 @@ main() {
 		"About"    "About this program"
 	)
 
-	selected="$(dialog \
-		--backtitle "${title}" \
+	selected="$(_menu \
 		--cancel-label "Exit" \
 		--default-item "${selected}" \
-		--menu "Choose one" \
-		22 77 16 "${menuOptions[@]}" 3>&1 1>&2 2>&3 >"$(tty)")"
+		-- "${menuOptions[@]}")"
 
 }
 
@@ -209,12 +215,10 @@ _commandPalette() {
 		"Commands" "Craft a custom command using a command palette"
 	)
 
-	selected="$(dialog \
-		--backtitle "${title}" \
+	selected="$(_menu \
 		--cancel-label "Exit" \
 		--default-item "${selected}" \
-		--menu "Choose one" \
-		22 77 16 "${menuOptions[@]}" 3>&1 1>&2 2>&3 >"$(tty)")"
+		-- "${menuOptions[@]}" )"
 
 	case "${selected}" in
 		Input)
@@ -245,28 +249,22 @@ _craftCommand(){
 	else
 		command="||"
 	fi
-	selected="$(dialog \
-		--backtitle "${title}" \
+	selected="$(_menu \
 		--cancel-label "Exit" \
-		--default-item "${selected}" \
-		--menu "Choose one" \
-		22 77 16 "${cmdPalette[@]}" 3>&1 1>&2 2>&3 >"$(tty)")"
+		-- "${cmdPalette[@]}" )"
 	command="${command}${selected}"
 
 	case "${selected}" in
 		system | random)
-			console="$(dialog \
+			console="$(_menu \
 				--backtitle "${title}" \
-				--menu "Choose one" \
-				22 77 16 "${consoles[@]}" 3>&1 1>&2 2>&3 >"$(tty)")"
+				-- "${consoles[@]}" )"
 			command="${command}${console}"
 			echo "${command}"
 			;;
 		ini)
-			ini="$(dialog \
-				--backtitle "${title}" \
-				--radiolist "Choose one" \
-				22 77 16 1 one off 2 two off 3 three off 4 four off 3>&1 1>&2 2>&3 >"$(tty)")"
+			ini="$(_radiolist --
+				1 one off 2 two off 3 three off 4 four off )"
 			command="${command}${ini}"
 			echo "${command}"
 			;;
@@ -338,14 +336,13 @@ _EOF_
 _Settings() {
 	local menuOptions selected
 	menuOptions=(
-		"Enable"     "Enable NFC service"
-		"Disable"    "Disable NFC service"
+		"Enable"     "Enable NFC service"  "off"
+		"Disable"    "Disable NFC service" "off"
 	)
+	"${nfcStatus}" && menuOptions[2]="on"
+	"${nfcStatus}" || menuOptions[5]="on"
 
-	selected="$(dialog \
-		--backtitle "${title}" \
-		--menu "Choose one" \
-		22 77 16 "${menuOptions[@]}" 3>&1 1>&2 2>&3 >"$(tty)")"
+	selected="$(_radiolist -- "${menuOptions[@]}" )"
 
 	case "${selected}" in
 		Enable)
@@ -539,19 +536,14 @@ _dbEdit() {
 
 	mapfile -t arrayIndex < <( _numberedArray "${oldMap[@]}" )
 
-	line="$(dialog \
-		--backtitle "${title}" \
-		--menu "${mapHeader}" \
-		22 77 16 "${arrayIndex[@]//\"/}" 3>&1 1>&2 2>&3 >"$(tty)" )"
+	line="$(msg="${mapHeader}" _menu \
+		-- "${arrayIndex[@]//\"/}" )"
 
-	#set -x
-	#exec &> /tmp/log
 	[[ -z "${line}" ]] && return
 	lineNumber=$((line + 1))
 	match_uid="$(cut -d ',' -f 1 <<< "${oldMap[$line]}")"
 	match_text="$(cut -d ',' -f 2 <<< "${oldMap[$line]}")"
 	text="$(cut -d ',' -f 3 <<< "${oldMap[$line]}")"
-	#set +x
 
 	menuOptions=(
 		"1" "${match_uid}"
@@ -559,10 +551,8 @@ _dbEdit() {
 		"3" "${text}"
 	)
 
-	selected="$(dialog \
-		--backtitle "${title}" \
-		--menu "${mapHeader}" \
-		22 77 16 "${menuOptions[@]}" 3>&1 1>&2 2>&3 >"$(tty)")"
+	selected="$(_menu \
+		-- "${menuOptions[@]}" )"
 
 	case "${selected}" in
 	1)
@@ -642,6 +632,68 @@ _inputbox() {
 		"${opts[@]}" \
 		--inputbox "${msg}" \
 		22 77 "${init}" 3>&1 1>&2 2>&3 >"$(tty)" <"$(tty)"
+}
+
+# Display a menu
+# Usage: _menu [--optional-arguments] -- [tag item]
+# You can pass additioal arguments to the dialog program
+# Backtitle is already set
+_menu() {
+	local menu_items optional_args
+
+	# Separate optional arguments from menu items
+	while [[ $# -gt 0 ]]; do
+		if [[ "$1" == "--" ]]; then
+			shift
+			break
+		else
+			optional_args+=("$1")
+			shift
+		fi
+	done
+
+	# Collect menu items
+	while [[ $# -gt 0 ]]; do
+		menu_items+=("$1")
+		shift
+	done
+
+	dialog \
+		--backtitle "${title}" \
+		"${optional_args[@]}" \
+		--menu "${msg:-Chose one}" \
+		22 77 16 "${menu_items[@]}" 3>&1 1>&2 2>&3 >"$(tty)" <"$(tty)"
+}
+
+# Display a radio menu
+# Usage: _radiolist [--optional-arguments] -- [tag item status]
+# You can pass additioal arguments to the dialog program
+# Backtitle is already set
+_radiolist() {
+	local menu_items optional_args
+
+	# Separate optional arguments from menu items
+	while [[ $# -gt 0 ]]; do
+		if [[ "$1" == "--" ]]; then
+			shift
+			break
+		else
+			optional_args+=("$1")
+			shift
+		fi
+	done
+
+	# Collect menu items
+	while [[ $# -gt 0 ]]; do
+		menu_items+=("$1")
+		shift
+	done
+
+	dialog \
+		--backtitle "${title}" \
+		"${optional_args[@]}" \
+		--radiolist "Chose one" \
+		22 77 16 "${menu_items[@]}" 3>&1 1>&2 2>&3 >"$(tty)" <"$(tty)"
 }
 
 # Display a message
