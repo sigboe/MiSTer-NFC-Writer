@@ -150,7 +150,6 @@ main() {
 		"Write"    "Write ROM file paths to NFC Tag"
 		"Mappings" "Edit the mappings database"
 		"Settings" "Options for ${title}"
-		"dbEdit"   "CSV editor, will be merged into Mappings"
 		"About"    "About this program"
 	)
 
@@ -163,20 +162,25 @@ main() {
 
 _Read() {
 	local nfcSCAN nfcUID nfcTXT
-	#TODO bug wizzo about adding a feature to suspend launching games so we can read tags without interrupting the program
-	[[ -f "/tmp/NFCSCAN" ]] && rm /tmp/NFCSCAN
-	_yesno "Scan NFC Tag then continue" --yes-label "Continue" --no-label "Back" || return
-	nfcSCAN="$(</tmp/NFCSCAN)"
+
+	nfcSCAN="$(_readTag)"
 	nfcTXT="${nfcSCAN#*,}"
 	nfcUID="${nfcSCAN%,*}"
-	[[ -z "${nfcSCAN}" ]] && { _error "Tag not read" ; _Read ; }
-	[[ -n "${nfcSCAN}" ]] && _msgbox "Tag contents: ${nfcTXT}\n Tag UID: ${nfcUID}"
-	#TODO change to yesno with extra button to do things like remap using mapping file and copy contents to new tag
+	[[ -n "${nfcSCAN}" ]] && _yesno "Tag contents: ${nfcTXT}\n Tag UID: ${nfcUID}" --yes-label "OK" --no-label "Re-Map" --extra-button --extra-label "Clone Tag"
+	case "${?}" in
+		1)
+			_writeTextToMap --uid "${nfcUID}" "$(_commandPalette)"
+			;;
+		3)
+			_writeTag "${nfcTXT}"
+			;;
+	esac
 }
 
 _Write() {
 	local fileSelected message txtSize
 	text="$(_commandPalette)"
+	[[ "${?}" -eq 1 || "${?}" -eq 255 ]] && return
 	txtSize="$(echo -n "${text}" | wc --bytes)"
 	read -rd '' message <<_EOF_
 The following file was selected:
@@ -194,8 +198,7 @@ _EOF_
 			;;
 		3)
 			# Extra button
-			#TODO _writeTextToMap
-			_msgbox "Feature not implemented yet, but you can currently do this through dbEdit (or Mappings if I have come as far as merging those two yet)"
+			_writeTextToMap "${text}"
 			;;
 		1|255)
 			return
@@ -219,20 +222,26 @@ _commandPalette() {
 		--cancel-label "Exit" \
 		--default-item "${selected}" \
 		-- "${menuOptions[@]}" )"
+	exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 
 	case "${selected}" in
 		Input)
-			inputText="$( _inputbox "Replace match text" "${match_text}" || return )"
+			inputText="$( _inputbox "Replace match text" "${match_text}")"
+			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+
 			echo "${inputText}"
 			;;
 		Pick)
 			fileSelected="$(_fselect "${basedir}")"
+			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			[[ ! -f "${fileSelected//.zip\/*/.zip}" ]] && { _error "No file was selected." ; return ; }
 			fileSelected="${fileSelected//$basedir}"
+
 			echo "${fileSelected}"
 			;;
 		Commands)
 			text="$(_craftCommand)"
+			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			echo "${text}"
 			;;
 	esac
@@ -252,6 +261,9 @@ _craftCommand(){
 	selected="$(_menu \
 		--cancel-label "Exit" \
 		-- "${cmdPalette[@]}" )"
+	exitcode="${?}"
+	[[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+
 	command="${command}${selected}"
 
 	case "${selected}" in
@@ -259,17 +271,23 @@ _craftCommand(){
 			console="$(_menu \
 				--backtitle "${title}" \
 				-- "${consoles[@]}" )"
+			exitcode="${?}"
+			[[ "${exitcode}" -ge 1 ]] && return 1
 			command="${command}${console}"
 			echo "${command}"
 			;;
 		ini)
 			ini="$(_radiolist --
 				1 one off 2 two off 3 three off 4 four off )"
+			exitcode="${?}"
+			[[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			command="${command}${ini}"
 			echo "${command}"
 			;;
 		get)
 			http="$(_inputbox "Enter URL" "https://" || return )"
+			exitcode="${?}"
+			[[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			[[ "${http}" =~ ${url_regex} ]] || { _error "${http} doesnt look like an URL?" ; return ; }
 			command="${command}${http}"
 			_yesno "Do you wish to execute an additional command?" && command="${command}$(_craftCommand)"
@@ -277,58 +295,20 @@ _craftCommand(){
 			;;
 		coinp1 | coinp2)
 			coin="$(_inputbox "Enter number" "1" || return )"
+			exitcode="${?}"
+			[[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			[[ "${coin}" =~ ^-?[0-9]+$ ]] || { _error "${coin} is not a number" ; return ; }
 			command="${command}${coin}"
 			echo "${command}"
 			;;
 		command)
 			linuxcmd="$(_inputbox "Enter Linux command" "reboot" || return )"
+			exitcode="${?}"
+			[[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			[[ -x "${linuxcmd%% *}" ]] || { _error "${linuxcmd%% *} from ${linuxcmd} does not seam to be a valid command" ; return ; }
 			command="${command}${linuxcmd}"
 			echo "${command}"
 			;;
-	esac
-
-}
-
-_Mappings() {
-	local nfcSCAN nfcUID nfcTXT description
-	[[ -f "/tmp/NFCSCAN" ]] && rm /tmp/NFCSCAN
-	_yesno "Scan NFC Tag then continue" --yes-label "Continue" --no-label "Back" || return
-	nfcSCAN="$(</tmp/NFCSCAN)"
-	nfcTXT="${nfcSCAN#*,}"
-	nfcUID="${nfcSCAN%,*}"
-	if [[ -f "${map}" ]]; then
-		mapMatchText="$(grep "${nfcUID}" "${map}" | head -n1 | cut -d"," -f2)"
-		mappedText="$(grep "${nfcUID}" "${map}" | head -n1 | cut -d"," -f3)"
-	fi
-	[[ -z "${nfcSCAN}" ]] && { _error "Tag not read" ; _Mappings ; }
-	read -rd '' description <<_EOF_
-Tag contents: ${nfcTXT}
-Tag UID: ${nfcUID}
-
-Do you want to overwrite the mapping for this NFC tag?
-_EOF_
-	[[ -n "${mappedText}" ]] && read -rd '' description <<_EOF_
-${description}
-Current mappedText: ${mapMatchText}
-current mappedMatch: ${mapMatchText}
-_EOF_
-	[[ -n "${nfcSCAN}" ]] && _yesno "${description}" --yes-label Overwrite --no-label Back --extra-button  --extra-button --extra-label "Update Mapped"
-	case "${?}" in
-	0)
-		#yes button
-		#TODO this is wrong
-		_Write
-		;;
-	1 | 255)
-		# cancel or esc
-		return
-		;;
-	3)
-		#extra button
-		_map "${nfcUID}" "$(_fselect)"
-		;;
 	esac
 
 }
@@ -389,6 +369,7 @@ _fselect() {
 			--title "${fullPath}" \
 			--fselect "${fullPath}/" \
 			"${windowh}" 77 3>&1 1>&2 2>&3 >"$(tty)"
+		exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 
 	else
 		# in case of a very tiny terminal window
@@ -424,22 +405,24 @@ _fselect() {
 			--title "${fullPath}" \
 			--menu "Pick a game to write to NFC Tag" \
 			22 77 16 "${dirList[@]}" 3>&1 1>&2 2>&3 >"$(tty)" <"$(tty)")"
-
-		[[ "${?}" -ge 1 ]] && return
+		exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 
 		case "${selected,,}" in
 		"goto")
 			newDir="$(_inputbox "Input a directory to go to" "${basedir}")"
 			_fselect "${newDir}"
+			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			;;
 		"..")
 			_fselect "${fullPath%/*}"
+			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			;;
 		*.zip)
 			echo "${fullPath}/${selected}/$(_browseZip "${fullPath}/${selected}")"
 			;;
 		*)
 			_fselect "${fullPath}/${selected}"
+			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			;;
 		esac
 
@@ -499,6 +482,7 @@ _browseZip() {
 			--title "${zipFile}" \
 			--menu "${currentDir}" \
 			22 77 16 "${dirList[@]}" 3>&1 1>&2 2>&3 >"$(tty)" <"$(tty)")"
+		exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 
 		case "${selected,,}" in
 		"..")
@@ -529,16 +513,19 @@ _map() {
 	printf "%s,,%s\n" "${uid}" "${txt}" >> "${map}"
 }
 
-_dbEdit() {
-	local oldMap arrayIndex line lineNumber match_uid match_text text menuOptions selected replacement_match_text message
+_Mappings() {
+	local oldMap arrayIndex line lineNumber match_uid match_text text menuOptions selected replacement_match_text replacement_match_uid replacement_text message
+	unset replacement_match_uid replacement_match_text replacement_text
 	mapfile -t -O 1 -s 1 oldMap < "${map}"
 	echo "${oldMap[@]}"
 
 	mapfile -t arrayIndex < <( _numberedArray "${oldMap[@]}" )
 
 	line="$(msg="${mapHeader}" _menu \
+		--extra-button --extra-label "New" \
 		-- "${arrayIndex[@]//\"/}" )"
 
+	[[ "${?}" == "3" ]] && { _msgbox "Feature not implemented yet" ; return ; }
 	[[ -z "${line}" ]] && return
 	lineNumber=$((line + 1))
 	match_uid="$(cut -d ',' -f 1 <<< "${oldMap[$line]}")"
@@ -557,34 +544,28 @@ _dbEdit() {
 	case "${selected}" in
 	1)
 		# Replace match_uid
-		# will break out read into a function before putting it here
+		replacement_match_uid="$(_readTag | cut -d ',' -f 1)"
+		[[ -z "${replacement_match_uid}" ]] && return
 		;;
 	2)
 		# Replace match_text
 		replacement_match_text="$( _inputbox "Replace match text" "${match_text}" || return )"
-		read -rd '' message <<_EOF_
-Replace:
-${match_uid},${match_text},${text}
-With:
-${match_uid},${replacement_match_text},${text}
-_EOF_
-		_yesno "${message}" || return
-		sed -i "${lineNumber}c\\${match_uid},${replacement_match_text},${text}" "${map}"
 		;;
 	3)
 		# Replace text
 		replacement_text="$(_commandPalette)"
 		[[ -z "${replacement_text}" ]] && { _msgbox "Nothing selected for writing" ; return ; }
-		read -rd '' message <<_EOF_
+		;;
+	esac
+
+	read -rd '' message <<_EOF_
 Replace:
 ${match_uid},${match_text},${text}
 With:
-${match_uid},${match_text},${replacement_text}
+${replacement_match_uid:-$match_uid},${replacement_match_text:-$match_text},${replacement_text:-$text}
 _EOF_
-		_yesno "${message}" || return
-		sed -i "${lineNumber}c\\${match_uid},${match_text},${replacement_text}" "${map}"
-		;;
-	esac
+	_yesno "${message}" || return
+	sed -i "${lineNumber}c\\${replacement_match_uid:-$match_uid},${replacement_match_text:-$match_text},${replacement_text:-$text}" "${map}"
 
 }
 
@@ -610,12 +591,62 @@ _writeTag() {
 	local txt
 	txt="${1}"
 
-	"${nfcCommand}" -service stop || { _error "Unable to stop the NFC service"; return; }
-	"${nfcCommand}" -write "${txt}" || { _error "Unable to write the NFC Tag"; "${nfcCommand}" -service start;  return; }
-	"${nfcCommand}" -service start || _error "Unable to start the NFC service"
+	"${nfcStatus}" && { "${nfcCommand}" -service stop || { _error "Unable to stop the NFC service" ; return ; } ; }
+	"${nfcCommand}" -write "${txt}" || { _error "Unable to write the NFC Tag"; "${nfcCommand}" -service start ;  return; }
+	"${nfcStatus}" && { "${nfcCommand}" -service start || { _error "Unable to start the NFC service" ; return ; } ; }
 
 	_msgbox "${txt} \n successfully written to NFC tag"
 }
+
+# Write text string to NFC map (overrides physical NFC Tag contents)
+# Usage: _writeTextToMap [--uid "UID"] <"Text">
+_writeTextToMap() {
+	local txt uid oldMapEntry
+
+	while [[ "${#}" -gt "0" ]]; do
+		case "${1}" in
+		--uid)
+			uid="${2}"
+			shift 2
+			;;
+		*)
+			txt="${1}"
+			shift
+			;;
+		esac
+	done
+
+	# Check if UID is provided
+	[[ -z "${uid}" ]] && uid="$(_readTag | cut -d',' -f1 )"
+
+	# Check if the map file exists and read the existing entry for the given UID
+	if [[ -f "${map}" ]]; then
+		oldMapEntry=$(grep "^${uid}," "${map}")
+	else
+		echo "${mapHeader}" > "${map}"
+	fi
+
+	# If an existing entry is found, ask to replace it
+	if [[ -n "$oldMapEntry" ]] && _yesno "UID:${uid}\nText:${txt}\n\nAdd entry to map? This will replace:\n${oldMapEntry}"; then
+		sed -i "s|^${uid},.*|${uid},,${txt}|g" "${map}"
+	elif _yesno "UID:${uid}\nText:${txt}\n\nAdd entry to map?"; then
+		echo "${uid},,${txt}" >> "${map}"
+	fi
+}
+
+# Read UID and Text from tag
+# Usage: _readTag
+# Returns: uid,text
+_readTag() {
+	local nfcSCAN nfcUID nfcTXT
+	#TODO bug wizzo about adding a feature to suspend launching games so we can read tags without interrupting the program
+	[[ -f "/tmp/NFCSCAN" ]] && rm /tmp/NFCSCAN
+	_yesno "Scan NFC Tag then continue" --yes-label "Continue" --no-label "Back" || return
+	nfcSCAN="$(</tmp/NFCSCAN)"
+	[[ -z "${nfcSCAN}" ]] && { _error "Tag not read" ; _readTag ; }
+	[[ -n "${nfcSCAN}" ]] && echo "${nfcSCAN}"
+}
+
 
 # Ask user for a string
 # Usage: _inputbox "My message" "Initial text" [--optional-arguments]
@@ -632,6 +663,7 @@ _inputbox() {
 		"${opts[@]}" \
 		--inputbox "${msg}" \
 		22 77 "${init}" 3>&1 1>&2 2>&3 >"$(tty)" <"$(tty)"
+	return "${?}"
 }
 
 # Display a menu
@@ -663,6 +695,7 @@ _menu() {
 		"${optional_args[@]}" \
 		--menu "${msg:-Chose one}" \
 		22 77 16 "${menu_items[@]}" 3>&1 1>&2 2>&3 >"$(tty)" <"$(tty)"
+	return "${?}"
 }
 
 # Display a radio menu
@@ -694,6 +727,7 @@ _radiolist() {
 		"${optional_args[@]}" \
 		--radiolist "Chose one" \
 		22 77 16 "${menu_items[@]}" 3>&1 1>&2 2>&3 >"$(tty)" <"$(tty)"
+	return "${?}"
 }
 
 # Display a message
@@ -710,6 +744,7 @@ _msgbox() {
 		"${opts[@]}" \
 		--msgbox "${msg}" \
 		22 77  3>&1 1>&2 2>&3 >"$(tty)" <"$(tty)"
+	return "${?}"
 }
 
 # Request user input

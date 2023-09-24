@@ -18,8 +18,8 @@ Not complete list of tasks to do
 
 - [ ] Vet the regex used to check validity of URLs
 - [ ] Rework reading tags (requires upstream changes)
-- [ ] Give option to update/add entry to mapping database from the read menu
-- [ ] Write a function to just add add/overwrite an entry in the mappings database
+- [X] Give option to update/add entry to mapping database from the read menu
+- [X] Write a function to just add add/overwrite an entry in the mappings database
 - [ ] All English language messages should be reworded after the ux is more finalized
 
 ## Status
