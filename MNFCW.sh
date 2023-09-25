@@ -8,8 +8,10 @@ fullFileBrowser="false"
 #TODO thoroughly test this regex
 url_regex="^(http|https|ftp)://[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}(/.*)?$"
 basedir="/media/fat/"
-nfcCommand="nfc.sh"
+[[ -d "${basedir}" ]] || basedir="${HOME}"
+nfcCommand="${scriptdir}/nfc.sh"
 map="/media/fat/nfc.csv"
+[[ -f "${map}" ]] || map="nfc.csv"
 mapHeader="match_uid,match_text,text"
 nfcStatus="$("${nfcCommand}" --service status)"
 if [[ "${nfcStatus}" == "nfc service running" ]]; then
