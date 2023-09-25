@@ -190,7 +190,7 @@ The following file or command (without quotes) is to be written:
 
 The NFC Tag needs to be able to fit at least ${txtSize} Bytes to write this tag
 _EOF_
-	_yesno "${message}" --title "${title}"  --yes-label "Write to Tag" --extra-button --extra-label "Write to Map"
+	_yesno "${message}" --yes-label "Write to Tag" --extra-button --extra-label "Write to Map" --no-label "Cancel"
 	answer="${?}"
 	[[ -z "${text}" ]] && { _msgbox "Nothing selected for writing" ; return ; }
 	[[ "${text}" =~ ^\*\*command:* ]] && { _msgbox "Writing system commands to NFC tags are disabled" ; return ; }
