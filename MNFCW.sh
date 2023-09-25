@@ -505,7 +505,7 @@ _map() {
 	local uid txt
 	uid="${1}"
 	txt="${2}"
-	[[ -e "${map}" ]] ||  printf "%s\n" "${mapHeader}" >> "${map}"
+	[[ -e "${map}" ]] ||  printf "%s\n" "${mapHeader}" >> "${map}" || { _error "Can't initialize mappings database!" ; return 1 ; }
 	grep -q "^${uid}" "${map}" && sed -i "/^${uid}/d" "${map}"
 	printf "%s,,%s\n" "${uid}" "${txt}" >> "${map}"
 }
@@ -513,6 +513,9 @@ _map() {
 _Mappings() {
 	local oldMap arrayIndex line lineNumber match_uid match_text text menuOptions selected replacement_match_text replacement_match_uid replacement_text message new_match_uid new_text
 	unset replacement_match_uid replacement_text
+	
+	[[ ! -e "${map}" ]] || printf "%s\n" "${mapHeader}" >> "${map}" || { _error "Can't initialize mappings database!" ; return 1 ; }
+
 	mapfile -t -O 1 -s 1 oldMap < "${map}"
 	echo "${oldMap[@]}"
 
