@@ -1,7 +1,7 @@
 # MiSTer NFC Write
 
 This is a tool to create NFC Tags by browsing and select games, crafting
-commands using a command palette using a gamepad, or typing commands and URLs
+commands with a command palette using a gamepad, or typing commands and URLs
 directly in using a keyboard. All from the comfort of your MiSTer FPGA device.
 
 This tool is intended to be upstreamed into [NFC script by Wizzo](https://github.com/wizzomafizzo/mrext/blob/main/docs/nfc.md)
