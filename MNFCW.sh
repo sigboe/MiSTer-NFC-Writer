@@ -8,10 +8,8 @@ fullFileBrowser="false"
 #TODO thoroughly test this regex
 url_regex="^(http|https|ftp)://[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}(/.*)?$"
 basedir="/media/fat/"
-[[ -d "${basedir}" ]] || basedir="${HOME}"
 nfcCommand="nfc.sh"
 map="/media/fat/nfc.csv"
-[[ -f "${map}" ]] || map="nfc.csv"
 mapHeader="match_uid,match_text,text"
 nfcStatus="$("${nfcCommand}" --service status)"
 if [[ "${nfcStatus}" == "nfc service running" ]]; then
@@ -19,6 +17,9 @@ if [[ "${nfcStatus}" == "nfc service running" ]]; then
 else
 	nfcStatus="false"
 fi
+[[ -f "/tmp/nfc.sock" ]] && nfcReadingStatus="$(echo "status" | socat - UNIX-CONNECT:/tmp/nfc.sock)"
+[[ -n "${nfcReadingStatus}" ]] && nfcReadingStatus="$(cut -d ',' -f 3 <<< "${nfcReadingStatus}")"
+[[ -n "${nfcReadingStatus}" ]] || nfcReadingStatus="false"
 cmdPalette=(
 	"system" "This command will launch a system"
 	"random" "This command will launch a game a random for the given system"
@@ -164,8 +165,9 @@ _Read() {
 	local nfcSCAN nfcUID nfcTXT
 
 	nfcSCAN="$(_readTag)"
-	nfcTXT="${nfcSCAN#*,}"
-	nfcUID="${nfcSCAN%,*}"
+	exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+	nfcTXT="$(cut -d ',' -f 4 <<< "${nfcSCAN}" )"
+	nfcUID="$(cut -d ',' -f 2 <<< "${nfcSCAN}" )"
 	[[ -n "${nfcSCAN}" ]] && _yesno "Tag contents: ${nfcTXT}\n Tag UID: ${nfcUID}" --yes-label "OK" --no-label "Re-Map" --extra-button --extra-label "Clone Tag"
 	case "${?}" in
 		1)
@@ -183,8 +185,8 @@ _Write() {
 	[[ "${?}" -eq 1 || "${?}" -eq 255 ]] && return
 	txtSize="$(echo -n "${text}" | wc --bytes)"
 	read -rd '' message <<_EOF_
-The following file was selected:
-${text}
+The following file or command (without quotes) is to be written:
+"${text}"
 
 The NFC Tag needs to be able to fit at least ${txtSize} Bytes to write this tag
 _EOF_
@@ -236,6 +238,7 @@ _commandPalette() {
 			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			[[ ! -f "${fileSelected//.zip\/*/.zip}" ]] && { _error "No file was selected." ; return ; }
 			fileSelected="${fileSelected//$basedir}"
+			fileSelected="${fileSelected#/}"
 
 			echo "${fileSelected}"
 			;;
@@ -273,7 +276,7 @@ _craftCommand(){
 				-- "${consoles[@]}" )"
 			exitcode="${?}"
 			[[ "${exitcode}" -ge 1 ]] && return 1
-			command="${command}${console}"
+			command="${command}:${console}"
 			echo "${command}"
 			;;
 		ini)
@@ -281,7 +284,7 @@ _craftCommand(){
 				1 one off 2 two off 3 three off 4 four off )"
 			exitcode="${?}"
 			[[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
-			command="${command}${ini}"
+			command="${command}:${ini}"
 			echo "${command}"
 			;;
 		get)
@@ -289,7 +292,7 @@ _craftCommand(){
 			exitcode="${?}"
 			[[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			[[ "${http}" =~ ${url_regex} ]] || { _error "${http} doesnt look like an URL?" ; return ; }
-			command="${command}${http}"
+			command="${command}:${http}"
 			_yesno "Do you wish to execute an additional command?" && command="${command}$(_craftCommand)"
 			echo "${command}"
 			;;
@@ -298,7 +301,7 @@ _craftCommand(){
 			exitcode="${?}"
 			[[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			[[ "${coin}" =~ ^-?[0-9]+$ ]] || { _error "${coin} is not a number" ; return ; }
-			command="${command}${coin}"
+			command="${command}:${coin}"
 			echo "${command}"
 			;;
 		command)
@@ -306,7 +309,7 @@ _craftCommand(){
 			exitcode="${?}"
 			[[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			[[ -x "${linuxcmd%% *}" ]] || { _error "${linuxcmd%% *} from ${linuxcmd} does not seam to be a valid command" ; return ; }
-			command="${command}${linuxcmd}"
+			command="${command}:${linuxcmd}"
 			echo "${command}"
 			;;
 	esac
@@ -357,7 +360,7 @@ _EOF_
 # Usage: _fselect "${fullPath}"
 # returns the file that is selected including the full path, if full path is used.
 _fselect() {
-	local termh windowh dirList selected extension fileName fullPath newDir #gameName
+	local termh windowh dirList selected extension fileName fullPath newDir
 	fullPath="${1}"
 	[[ -f "${fullPath}" ]] && { echo "${fullPath}"; return; }
 	termh="$(tput lines)"
@@ -400,29 +403,23 @@ _fselect() {
 
 		done < <(find "${fullPath}" -maxdepth 1 -type f)
 
-		selected="$(dialog \
-			--backtitle "${title}" \
-			--title "${fullPath}" \
-			--menu "Pick a game to write to NFC Tag" \
-			22 77 16 "${dirList[@]}" 3>&1 1>&2 2>&3 >"$(tty)" <"$(tty)")"
+		selected="$(msg="Pick a game to write to NFC Tag" \
+			_menu  --title "${fullPath}" -- "${dirList[@]}")"
 		exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 
 		case "${selected,,}" in
 		"goto")
-			newDir="$(_inputbox "Input a directory to go to" "${basedir}")"
-			_fselect "${newDir}"
-			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+			newDir="$(_inputbox "Input a directory to go to" "${fullPath}")"
+			_fselect "${newDir%/}"
 			;;
 		"..")
 			_fselect "${fullPath%/*}"
-			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			;;
 		*.zip)
 			echo "${fullPath}/${selected}/$(_browseZip "${fullPath}/${selected}")"
 			;;
 		*)
 			_fselect "${fullPath}/${selected}"
-			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			;;
 		esac
 
@@ -508,14 +505,14 @@ _map() {
 	local uid txt
 	uid="${1}"
 	txt="${2}"
-	[[ -e "${map}" ]] ||  printf "match_uid,match_text,text\n" >> "${map}"
+	[[ -e "${map}" ]] ||  printf "%s\n" "${mapHeader}" >> "${map}"
 	grep -q "^${uid}" "${map}" && sed -i "/^${uid}/d" "${map}"
 	printf "%s,,%s\n" "${uid}" "${txt}" >> "${map}"
 }
 
 _Mappings() {
-	local oldMap arrayIndex line lineNumber match_uid match_text text menuOptions selected replacement_match_text replacement_match_uid replacement_text message
-	unset replacement_match_uid replacement_match_text replacement_text
+	local oldMap arrayIndex line lineNumber match_uid match_text text menuOptions selected replacement_match_text replacement_match_uid replacement_text message new_match_uid new_text
+	unset replacement_match_uid replacement_text
 	mapfile -t -O 1 -s 1 oldMap < "${map}"
 	echo "${oldMap[@]}"
 
@@ -525,7 +522,17 @@ _Mappings() {
 		--extra-button --extra-label "New" \
 		-- "${arrayIndex[@]//\"/}" )"
 
-	[[ "${?}" == "3" ]] && { _msgbox "Feature not implemented yet" ; return ; }
+	if [[ "${?}" == "3" ]]; then
+		new_match_uid="$(_readTag | cut -d ',' -f 2)"
+		exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+		new_match_uid="$(cut -d ',' -f 2 <<< "${new_match_uid}")"
+		new_text="$(_commandPalette)"
+		exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+		_map "${new_match_uid}" "${new_text}"
+		_Mappings
+		return
+	fi
+
 	[[ -z "${line}" ]] && return
 	lineNumber=$((line + 1))
 	match_uid="$(cut -d ',' -f 1 <<< "${oldMap[$line]}")"
@@ -544,7 +551,7 @@ _Mappings() {
 	case "${selected}" in
 	1)
 		# Replace match_uid
-		replacement_match_uid="$(_readTag | cut -d ',' -f 1)"
+		replacement_match_uid="$(_readTag | cut -d ',' -f 2)"
 		[[ -z "${replacement_match_uid}" ]] && return
 		;;
 	2)
@@ -617,7 +624,7 @@ _writeTextToMap() {
 	done
 
 	# Check if UID is provided
-	[[ -z "${uid}" ]] && uid="$(_readTag | cut -d',' -f1 )"
+	[[ -z "${uid}" ]] && uid="$(_readTag | cut -d ',' -f 2 )"
 
 	# Check if the map file exists and read the existing entry for the given UID
 	if [[ -f "${map}" ]]; then
@@ -634,15 +641,16 @@ _writeTextToMap() {
 	fi
 }
 
-# Read UID and Text from tag
+# Read UID and Text from tag, returns comma separated values below
 # Usage: _readTag
-# Returns: uid,text
+# Returns: "Unix epoch time","UID","core launch status","text"
 _readTag() {
 	local nfcSCAN nfcUID nfcTXT
-	#TODO bug wizzo about adding a feature to suspend launching games so we can read tags without interrupting the program
-	[[ -f "/tmp/NFCSCAN" ]] && rm /tmp/NFCSCAN
+	[[ "${nfcReadingStatus}" ]] && echo "disable" | socat - UNIX-CONNECT:/tmp/nfc.sock
 	_yesno "Scan NFC Tag then continue" --yes-label "Continue" --no-label "Back" || return
-	nfcSCAN="$(</tmp/NFCSCAN)"
+	exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+	nfcSCAN="$(echo "status" | socat - UNIX-CONNECT:/tmp/nfc.sock)"
+	[[ "${nfcReadingStatus}" ]] && echo "enable" | socat - UNIX-CONNECT:/tmp/nfc.sock
 	[[ -z "${nfcSCAN}" ]] && { _error "Tag not read" ; _readTag ; }
 	[[ -n "${nfcSCAN}" ]] && echo "${nfcSCAN}"
 }
