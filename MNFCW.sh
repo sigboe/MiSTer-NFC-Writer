@@ -5,7 +5,7 @@ title="MiSTer NFC Writer"
 scriptdir="$(dirname "$(readlink -f "${0}")")"
 version="0.1"
 fullFileBrowser="false"
-#TODO thoroughly test this regex
+#TODO thoroughly test this regex, being cognicent of users needs
 url_regex="^(http|https|ftp)://[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}(/.*)?$"
 basedir="/media/fat/"
 nfcCommand="${scriptdir}/nfc.sh"
@@ -21,116 +21,116 @@ fi
 [[ -n "${nfcReadingStatus}" ]] && nfcReadingStatus="$(cut -d ',' -f 3 <<< "${nfcReadingStatus}")"
 [[ -n "${nfcReadingStatus}" ]] || nfcReadingStatus="false"
 cmdPalette=(
-	"system" "This command will launch a system"
-	"random" "This command will launch a game a random for the given system"
-	"ini" "Loads the specified MiSTer.ini file and relaunches the menu core if open"
-	"get" "Perform an HTTP GET request to the specified URL"
-	"key" "Press a key on the keyboard using its uinput code"
-	"coinp1" "Insert a coin/credit for player 1"
-	"coinp2" "Insert a coin/credit for player 2"
-	"command" "This command will run a MiSTer Linux command directly"
+	"system"	"This command will launch a system"
+	"random"	"This command will launch a game a random for the given system"
+	"ini"		"Loads the specified MiSTer.ini file and relaunches the menu core if open"
+	"get"		"Perform an HTTP GET request to the specified URL"
+	"key"		"Press a key on the keyboard using its uinput code"
+	"coinp1"	"Insert a coin/credit for player 1"
+	"coinp2"	"Insert a coin/credit for player 2"
+	"command"	"This command will run a MiSTer Linux command directly"
 )
 consoles=(
-	"AdventureVision" "Adventure Vision"
-	"Amiga" "Amiga"
-	"Amstrad" "Amstrad CPC"
-	"AmstradPCW" "Amstrad PCW"
-	"Apogee" "Apogee BK-01"
-	"AppleI" "Apple I"
-	"AppleII" "Apple IIe"
-	"Arcade" "Arcade"
-	"Arcadia" "Arcadia 2001"
-	"Arduboy" "Arduboy"
-	"Atari2600" "Atari 2600"
-	"Atari5200" "Atari 5200"
-	"Atari7800" "Atari 7800"
-	"Atari800" "Atari 800XL"
-	"AtariLynx" "Atari Lynx"
-	"AcornAtom" "Atom"
-	"BBCMicro" "BBC Micro/Master"
-	"BK0011M" "BK0011M"
-	"Astrocade" "Bally Astrocade"
-	"Chip8" "Chip-8"
-	"CasioPV1000" "Casio PV-1000"
-	"CasioPV2000" "Casio PV-2000"
-	"ChannelF" "Channel F"
-	"ColecoVision" "ColecoVision"
-	"C64" "Commodore 64"
-	"PET2001" "Commodore PET 2001"
-	"VIC20" "Commodore VIC-20"
-	"EDSAC" "EDSAC"
-	"AcornElectron" "Electron"
-	"FDS" "Famicom Disk System"
-	"Galaksija" "Galaksija"
-	"Gamate" "Gamate"
-	"GameNWatch" "Game & Watch"
-	"GameGear" "Game Gear"
-	"Gameboy" "Gameboy"
-	"Gameboy2P" "Gameboy (2 Player)"
-	"GBA" "Gameboy Advance"
-	"GBA2P" "Gameboy Advance (2 Player)"
-	"GameboyColor" "Gameboy Color"
-	"Genesis" "Genesis"
-	"Sega32X" "Genesis 32X"
-	"Intellivision" "Intellivision"
-	"Interact" "Interact"
-	"Jupiter" "Jupiter Ace"
-	"Laser" "Laser 350/500/700"
-	"Lynx48" "Lynx 48/96K"
-	"SordM5" "M5"
-	"MSX" "MSX"
-	"MacPlus" "Macintosh Plus"
-	"Odyssey2" "Magnavox Odyssey2"
-	"MasterSystem" "Master System"
-	"Aquarius" "Mattel Aquarius"
-	"MegaDuck" "Mega Duck"
-	"MultiComp" "MultiComp"
-	"NES" "NES"
-	"NESMusic" "NESMusic"
-	"NeoGeo" "Neo Geo/Neo Geo CD"
-	"Nintendo64" "Nintendo 64"
-	"Orao" "Orao"
-	"Oric" "Oric"
-	"ao486" "PC (486SX)"
-	"OCXT" "PC/XT"
-	"PDP1" "PDP-1"
-	"PMD85" "PMD 85-2A"
-	"PSX" "Playstation"
-	"PocketChallengeV2" "Pocket Challenge V2"
-	"PokemonMini" "Pokemon Mini"
-	"RX78" "RX-78 Gundam"
-	"SAMCoupe" "SAM Coupe"
-	"SG1000" "SG-1000"
-	"SNES" "SNES"
-	"SNESMusic" "SNES Music"
-	"SVI328" "SV-328"
-	"Saturn" "Saturn"
-	"MegaCD" "Sega CD"
-	"QL" "Sinclair QL"
-	"Specialist" "Specialist/MX"
-	"SuperGameboy" "Super Gameboy"
-	"SuperGrafx" "SuperGrafx"
-	"SuperVision" "SuperVision"
-	"TI994A" "TI-99/4A"
-	"TRS80" "TRS-80"
-	"CoCo2" "TRS-80 CoCo 2"
-	"ZX81" "TS-1500"
-	"TSConf" "TS-Config"
-	"AliceMC10" "Tandy MC-10"
-	"TatungEinstein" "Tatung Einstein"
-	"TurboGrafx16" "TurboGrafx-16"
-	"TurboGrafx16CD" "TurboGrafx-16 CD"
-	"TomyTutor" "Tutor"
-	"UK101" "UK101"
-	"VC4000" "VC4000"
-	"CreatiVision" "VTech CreatiVision"
-	"Vector06C" "Vector-06C"
-	"Vectrex" "Vectrex"
-	"WonderSwan" "WonderSwan"
-	"WonderSwanColor" "WonderSwan Color"
-	"X68000" "X68000"
-	"ZXSpectrum" "ZX Spectrum"
-	"ZXNext" "ZX Spectrum Next"
+	"AdventureVision"	"Adventure Vision"
+	"Amiga"			"Amiga"
+	"Amstrad"		"Amstrad CPC"
+	"AmstradPCW"		"Amstrad PCW"
+	"Apogee"		"Apogee BK-01"
+	"AppleI"		"Apple I"
+	"AppleII"		"Apple IIe"
+	"Arcade"		"Arcade"
+	"Arcadia"		"Arcadia 2001"
+	"Arduboy"		"Arduboy"
+	"Atari2600"		"Atari 2600"
+	"Atari5200"		"Atari 5200"
+	"Atari7800"		"Atari 7800"
+	"Atari800"		"Atari 800XL"
+	"AtariLynx"		"Atari Lynx"
+	"AcornAtom"		"Atom"
+	"BBCMicro"		"BBC Micro/Master"
+	"BK0011M"		"BK0011M"
+	"Astrocade"		"Bally Astrocade"
+	"Chip8"			"Chip-8"
+	"CasioPV1000"		"Casio PV-1000"
+	"CasioPV2000"		"Casio PV-2000"
+	"ChannelF"		"Channel F"
+	"ColecoVision"		"ColecoVision"
+	"C64"			"Commodore 64"
+	"PET2001"		"Commodore PET 2001"
+	"VIC20"			"Commodore VIC-20"
+	"EDSAC"			"EDSAC"
+	"AcornElectron"		"Electron"
+	"FDS"			"Famicom Disk System"
+	"Galaksija"		"Galaksija"
+	"Gamate"		"Gamate"
+	"GameNWatch"		"Game & Watch"
+	"GameGear"		"Game Gear"
+	"Gameboy"		"Gameboy"
+	"Gameboy2P"		"Gameboy (2 Player)"
+	"GBA"			"Gameboy Advance"
+	"GBA2P"			"Gameboy Advance (2 Player)"
+	"GameboyColor"		"Gameboy Color"
+	"Genesis"		"Genesis"
+	"Sega32X"		"Genesis 32X"
+	"Intellivision"		"Intellivision"
+	"Interact"		"Interact"
+	"Jupiter"		"Jupiter Ace"
+	"Laser"			"Laser 350/500/700"
+	"Lynx48"		"Lynx 48/96K"
+	"SordM5"		"M5"
+	"MSX"			"MSX"
+	"MacPlus"		"Macintosh Plus"
+	"Odyssey2"		"Magnavox Odyssey2"
+	"MasterSystem"		"Master System"
+	"Aquarius"		"Mattel Aquarius"
+	"MegaDuck"		"Mega Duck"
+	"MultiComp"		"MultiComp"
+	"NES"			"NES"
+	"NESMusic"		"NESMusic"
+	"NeoGeo"		"Neo Geo/Neo Geo CD"
+	"Nintendo64"		"Nintendo 64"
+	"Orao"			"Orao"
+	"Oric"			"Oric"
+	"ao486"			"PC (486SX)"
+	"OCXT"			"PC/XT"
+	"PDP1"			"PDP-1"
+	"PMD85"			"PMD 85-2A"
+	"PSX"			"Playstation"
+	"PocketChallengeV2"	"Pocket Challenge V2"
+	"PokemonMini"		"Pokemon Mini"
+	"RX78"			"RX-78 Gundam"
+	"SAMCoupe"		"SAM Coupe"
+	"SG1000"		"SG-1000"
+	"SNES"			"SNES"
+	"SNESMusic"		"SNES Music"
+	"SVI328"		"SV-328"
+	"Saturn"		"Saturn"
+	"MegaCD"		"Sega CD"
+	"QL"			"Sinclair QL"
+	"Specialist"		"Specialist/MX"
+	"SuperGameboy"		"Super Gameboy"
+	"SuperGrafx"		"SuperGrafx"
+	"SuperVision"		"SuperVision"
+	"TI994A"		"TI-99/4A"
+	"TRS80"			"TRS-80"
+	"CoCo2"			"TRS-80 CoCo 2"
+	"ZX81"			"TS-1500"
+	"TSConf"		"TS-Config"
+	"AliceMC10"		"Tandy MC-10"
+	"TatungEinstein"	"Tatung Einstein"
+	"TurboGrafx16"		"TurboGrafx-16"
+	"TurboGrafx16CD"	"TurboGrafx-16 CD"
+	"TomyTutor"		"Tutor"
+	"UK101"			"UK101"
+	"VC4000"		"VC4000"
+	"CreatiVision"		"VTech CreatiVision"
+	"Vector06C"		"Vector-06C"
+	"Vectrex"		"Vectrex"
+	"WonderSwan"		"WonderSwan"
+	"WonderSwanColor"	"WonderSwan Color"
+	"X68000"		"X68000"
+	"ZXSpectrum"		"ZX Spectrum"
+	"ZXNext"		"ZX Spectrum Next"
 )
 
 _depends() {
@@ -186,11 +186,18 @@ _Write() {
 	txtSize="$(echo -n "${text}" | wc --bytes)"
 	read -rd '' message <<_EOF_
 The following file or command (without quotes) is to be written:
-"${text}"
+
+"${text:0:144}\Z4${text:144:504}\Z2${text:504:716}\Z3${text:716:888}\Z1${text:888}\Zn"
 
 The NFC Tag needs to be able to fit at least ${txtSize} Bytes to write this tag
+Common tag sizes:
+NTAG213 		144 bytes storage
+\Z4NTAG215 		504 bytes storage
+\Z2MIFARE Classic 1K 	716 bytes storage
+\Z3NTAG216 		888 bytes storage
+\Z1Text over this size will be colored red\Zn
 _EOF_
-	_yesno "${message}" --yes-label "Write to Tag" --extra-button --extra-label "Write to Map" --no-label "Cancel"
+	_yesno "${message}" --colors --yes-label "Write to Tag" --extra-button --extra-label "Write to Map" --no-label "Cancel"
 	answer="${?}"
 	[[ -z "${text}" ]] && { _msgbox "Nothing selected for writing" ; return ; }
 	[[ "${text}" =~ ^\*\*command:* ]] && { _msgbox "Writing system commands to NFC tags are disabled" ; return ; }
@@ -274,45 +281,51 @@ _craftCommand(){
 			console="$(_menu \
 				--backtitle "${title}" \
 				-- "${consoles[@]}" )"
-			exitcode="${?}"
-			[[ "${exitcode}" -ge 1 ]] && return 1
+			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return 1
 			command="${command}:${console}"
-			echo "${command}"
 			;;
 		ini)
-			ini="$(_radiolist --
+			ini="$(_radiolist -- \
 				1 one off 2 two off 3 three off 4 four off )"
-			exitcode="${?}"
-			[[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			command="${command}:${ini}"
-			echo "${command}"
 			;;
 		get)
-			http="$(_inputbox "Enter URL" "https://" || return )"
-			exitcode="${?}"
-			[[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
-			[[ "${http}" =~ ${url_regex} ]] || { _error "${http} doesnt look like an URL?" ; return ; }
+			while true; do
+				http="$(_inputbox "Enter URL" "https://")"
+				exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+				[[ "${http}" =~ ${url_regex} ]] && break
+				_error "${http} doesn't appear to be a valid URL"
+			done
 			command="${command}:${http}"
-			_yesno "Do you wish to execute an additional command?" && command="${command}$(_craftCommand)"
-			echo "${command}"
+			;;
+		key)
+			#TODO implement a _menu with keycodes
+			key="$(_inputbox "Enter uinput keycode" "88")"
+			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+			command="${command}:${key}"
 			;;
 		coinp1 | coinp2)
-			coin="$(_inputbox "Enter number" "1" || return )"
-			exitcode="${?}"
-			[[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
-			[[ "${coin}" =~ ^-?[0-9]+$ ]] || { _error "${coin} is not a number" ; return ; }
+			while true; do
+				coin="$(_inputbox "Enter number" "1")"
+				exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+				[[ "${coin}" == ?(-)+([0-9]) ]] && break
+				_error "${coin} is not a number"
+			done
 			command="${command}:${coin}"
-			echo "${command}"
 			;;
 		command)
-			linuxcmd="$(_inputbox "Enter Linux command" "reboot" || return )"
-			exitcode="${?}"
-			[[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
-			[[ -x "${linuxcmd%% *}" ]] || { _error "${linuxcmd%% *} from ${linuxcmd} does not seam to be a valid command" ; return ; }
+			while true; do
+				linuxcmd="$(_inputbox "Enter Linux command" "reboot" || return )"
+				exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+				[[ -x "${linuxcmd%% *}" ]] && break
+				_error "${linuxcmd%% *} from ${linuxcmd} does not seam to be a valid command"
+			done
 			command="${command}:${linuxcmd}"
-			echo "${command}"
 			;;
 	esac
+	_yesno "Do you wish to add an additional command?" --defaultno && command="${command}$(_craftCommand)"
+	echo "${command}"
 
 }
 
@@ -330,10 +343,14 @@ _Settings() {
 	case "${selected}" in
 		Enable)
 			"${nfcCommand}" -service start || { _error "Unable to start the NFC service"; return; }
+			nfcStatus="true"
+			export nfcStatus
 			_msgbox "The NFC service started"
 			;;
 		Disable)
 			"${nfcCommand}" -service stop || { _error "Unable to stop the NFC service"; return; }
+			nfcStatus="false"
+			export nfcStatus
 			_msgbox "The NFC service stopped"
 			;;
 	esac
@@ -513,7 +530,7 @@ _map() {
 _Mappings() {
 	local oldMap arrayIndex line lineNumber match_uid match_text text menuOptions selected replacement_match_text replacement_match_uid replacement_text message new_match_uid new_text
 	unset replacement_match_uid replacement_text
-	
+
 	[[ ! -e "${map}" ]] || printf "%s\n" "${mapHeader}" >> "${map}" || { _error "Can't initialize mappings database!" ; return 1 ; }
 
 	mapfile -t -O 1 -s 1 oldMap < "${map}"
@@ -649,12 +666,17 @@ _writeTextToMap() {
 # Returns: "Unix epoch time","UID","core launch status","text"
 _readTag() {
 	local nfcSCAN nfcUID nfcTXT
+	nfcScanTime="$(echo "status" | socat - UNIX-CONNECT:/tmp/nfc.sock | cut -d ',' -f 1)"
 	[[ "${nfcReadingStatus}" ]] && echo "disable" | socat - UNIX-CONNECT:/tmp/nfc.sock
-	_yesno "Scan NFC Tag then continue" --yes-label "Continue" --no-label "Back" || return
-	exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+	_infobox "Scan NFC Tag to continue...\n\nPress any key to go back"
+	while true; do
+		[[ "${nfcScanTime}" != "$(echo "status" | socat - UNIX-CONNECT:/tmp/nfc.sock 2>/dev/null | cut -d ',' -f 1)" ]] && break
+		sleep 1
+		read -t 1 -n 1 -r  && return 1
+	done
 	nfcSCAN="$(echo "status" | socat - UNIX-CONNECT:/tmp/nfc.sock)"
 	[[ "${nfcReadingStatus}" ]] && echo "enable" | socat - UNIX-CONNECT:/tmp/nfc.sock
-	[[ -z "${nfcSCAN}" ]] && { _error "Tag not read" ; _readTag ; }
+	#[[ -z "${nfcSCAN}" ]] && { _error "Tag not read" ; _readTag ; }
 	[[ -n "${nfcSCAN}" ]] && echo "${nfcSCAN}"
 }
 
@@ -738,6 +760,23 @@ _radiolist() {
 		"${optional_args[@]}" \
 		--radiolist "Chose one" \
 		22 77 16 "${menu_items[@]}" 3>&1 1>&2 2>&3 >"$(tty)" <"$(tty)"
+	return "${?}"
+}
+
+# Display an infobox, this exits immediately without clearing the screen
+# Usage: _msgbox "My message" [--optional-arguments]
+# You can pass additioal arguments to the dialog program
+# Backtitle is already set
+_infobox() {
+	local msg opts
+	msg="${1}"
+	shift
+	opts=("${@}")
+	dialog \
+		--backtitle "${title}" \
+		--aspect 0 "${opts[@]}" \
+		--infobox "${msg}" \
+		0 0  3>&1 1>&2 2>&3 >"$(tty)" <"$(tty)"
 	return "${?}"
 }
 
