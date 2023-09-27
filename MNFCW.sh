@@ -133,6 +133,275 @@ consoles=(
 	"ZXNext"		"ZX Spectrum Next"
 )
 
+keycodes=(
+	"Esc"			"1"
+	"1"			"2"
+	"2"			"3"
+	"3"			"4"
+	"4"			"5"
+	"5"			"6"
+	"6"			"7"
+	"7"			"8"
+	"8"			"9"
+	"9"			"10"
+	"0"			"11"
+	"Minus"			"12"
+	"Equal"			"13"
+	"Backspace"		"14"
+	"Tab"			"15"
+	"Q"			"16"
+	"W"			"17"
+	"E"			"18"
+	"R"			"19"
+	"T"			"20"
+	"Y"			"21"
+	"U"			"22"
+	"I"			"23"
+	"O"			"24"
+	"P"			"25"
+	"Leftbrace"		"26"
+	"Rightbrace"		"27"
+	"Enter"			"28"
+	"Leftctrl"		"29"
+	"A"			"30"
+	"S"			"31"
+	"D"			"32"
+	"F"			"33"
+	"G"			"34"
+	"H"			"35"
+	"J"			"36"
+	"K"			"37"
+	"L"			"38"
+	"Semicolon"		"39"
+	"Apostrophe"		"40"
+	"Grave"			"41"
+	"Leftshift"		"42"
+	"Backslash"		"43"
+	"Z"			"44"
+	"X"			"45"
+	"C"			"46"
+	"V"			"47"
+	"B"			"48"
+	"N"			"49"
+	"M"			"50"
+	"Comma"			"51"
+	"Dot"			"52"
+	"Slash"			"53"
+	"Rightshift"		"54"
+	"Kpasterisk"		"55"
+	"Leftalt"		"56"
+	"Space"			"57"
+	"Capslock"		"58"
+	"F1"			"59"
+	"F2"			"60"
+	"F3"			"61"
+	"F4"			"62"
+	"F5"			"63"
+	"F6"			"64"
+	"F7"			"65"
+	"F8"			"66"
+	"F9"			"67"
+	"F10"			"68"
+	"Numlock"		"69"
+	"Scrolllock"		"70"
+	"Kp7"			"71"
+	"Kp8"			"72"
+	"Kp9"			"73"
+	"Kpminus"		"74"
+	"Kp4"			"75"
+	"Kp5"			"76"
+	"Kp6"			"77"
+	"Kpplus"		"78"
+	"Kp1"			"79"
+	"Kp2"			"80"
+	"Kp3"			"81"
+	"Kp0"			"82"
+	"Kpdot"			"83"
+	"Zenkakuhankaku"	"85"
+	"102Nd"			"86"
+	"F11"			"87"
+	"F12"			"88"
+	"Ro"			"89"
+	"Katakana"		"90"
+	"Hiragana"		"91"
+	"Henkan"		"92"
+	"Katakanahiragana"	"93"
+	"Muhenkan"		"94"
+	"Kpjpcomma"		"95"
+	"Kpenter"		"96"
+	"Rightctrl"		"97"
+	"Kpslash"		"98"
+	"Sysrq"			"99"
+	"Rightalt"		"100"
+	"Linefeed"		"101"
+	"Home"			"102"
+	"Up"			"103"
+	"Pageup"		"104"
+	"Left"			"105"
+	"Right"			"106"
+	"End"			"107"
+	"Down"			"108"
+	"Pagedown"		"109"
+	"Insert"		"110"
+	"Delete"		"111"
+	"Macro"			"112"
+	"Mute"			"113"
+	"Volumedown"		"114"
+	"Volumeup"		"115"
+	"Power"			"116" #ScSystemPowerDown
+	"Kpequal"		"117"
+	"Kpplusminus"		"118"
+	"Pause"			"119"
+	"Scale"			"120" #AlCompizScale(Expose)
+	"Kpcomma"		"121"
+	"Hangeul"		"122"
+	"Hanja"			"123"
+	"Yen"			"124"
+	"Leftmeta"		"125"
+	"Rightmeta"		"126"
+	"Compose"		"127"
+	"Stop"			"128" #AcStop
+	"Again"			"129"
+	"Props"			"130" #AcProperties
+	"Undo"			"131" #AcUndo
+	"Front"			"132"
+	"Copy"			"133" #AcCopy
+	"Open"			"134" #AcOpen
+	"Paste"			"135" #AcPaste
+	"Find"			"136" #AcSearch
+	"Cut"			"137" #AcCut
+	"Help"			"138" #AlIntegratedHelpCenter
+	"Menu"			"139" #Menu(ShowMenu)
+	"Calc"			"140" #AlCalculator
+	"Setup"			"141"
+	"Sleep"			"142" #ScSystemSleep
+	"Wakeup"		"143" #SystemWakeUp
+	"File"			"144" #AlLocalMachineBrowser
+	"Sendfile"		"145"
+	"Deletefile"		"146"
+	"Xfer"			"147"
+	"Prog1"			"148"
+	"Prog2"			"149"
+	"Www"			"150" #AlInternetBrowser
+	"Msdos"			"151"
+	"Coffee"		"152" #AlTerminalLock/Screensaver
+	"Direction"		"153"
+	"Cyclewindows"		"154"
+	"Mail"			"155"
+	"Bookmarks"		"156" #AcBookmarks
+	"Computer"		"157"
+	"Back"			"158" #AcBack
+	"Forward"		"159" #AcForward
+	"Closecd"		"160"
+	"Ejectcd"		"161"
+	"Ejectclosecd"		"162"
+	"Nextsong"		"163"
+	"Playpause"		"164"
+	"Previoussong"		"165"
+	"Stopcd"		"166"
+	"Record"		"167"
+	"Rewind"		"168"
+	"Phone"			"169" #MediaSelectTelephone
+	"Iso"			"170"
+	"Config"		"171" #AlConsumerControlConfiguration
+	"Homepage"		"172" #AcHome
+	"Refresh"		"173" #AcRefresh
+	"Exit"			"174" #AcExit
+	"Move"			"175"
+	"Edit"			"176"
+	"Scrollup"		"177"
+	"Scrolldown"		"178"
+	"Kpleftparen"		"179"
+	"Kprightparen"		"180"
+	"New"			"181" #AcNew
+	"Redo"			"182" #AcRedo/Repeat
+	"F13"			"183"
+	"F14"			"184"
+	"F15"			"185"
+	"F16"			"186"
+	"F17"			"187"
+	"F18"			"188"
+	"F19"			"189"
+	"F20"			"190"
+	"F21"			"191"
+	"F22"			"192"
+	"F23"			"193"
+	"F24"			"194"
+	"Playcd"		"200"
+	"Pausecd"		"201"
+	"Prog3"			"202"
+	"Prog4"			"203"
+	"Dashboard"		"204" #AlDashboard
+	"Suspend"		"205"
+	"Close"			"206" #AcClose
+	"Play"			"207"
+	"Fastforward"		"208"
+	"Bassboost"		"209"
+	"Print"			"210" #AcPrint
+	"Hp"			"211"
+	"Camera"		"212"
+	"Sound"			"213"
+	"Question"		"214"
+	"Email"			"215"
+	"Chat"			"216"
+	"Search"		"217"
+	"Connect"		"218"
+	"Finance"		"219" #AlCheckbook/Finance
+	"Sport"			"220"
+	"Shop"			"221"
+	"Alterase"		"222"
+	"Cancel"		"223" #AcCancel
+	"Brightnessdown"	"224"
+	"Brightnessup"		"225"
+	"Media"			"226"
+	"Switchvideomode"	"227" #CycleBetweenAvailableVideo
+	"Kbdillumtoggle"	"228"
+	"Kbdillumdown"		"229"
+	"Kbdillumup"		"230"
+	"Send"			"231" #AcSend
+	"Reply"			"232" #AcReply
+	"Forwardmail"		"233" #AcForwardMsg
+	"Save"			"234" #AcSave
+	"Documents"		"235"
+	"Battery"		"236"
+	"Bluetooth"		"237"
+	"Wlan"			"238"
+	"Uwb"			"239"
+	"Unknown"		"240"
+	"VideoNext"		"241" #DriveNextVideoSource
+	"VideoPrev"		"242" #DrivePreviousVideoSource
+	"BrightnessCycle"	"243" #BrightnessUp,AfterMaxIsMin
+	"BrightnessZero"	"244" #BrightnessOff,UseAmbient
+	"DisplayOff"		"245" #DisplayDeviceToOffState
+	"Wimax"			"246"
+	"Rfkill"		"247" #KeyThatControlsAllRadios
+	"Micmute"		"248" #Mute/UnmuteTheMicrophone
+
+	"ButtonGamepad"		"0x130"
+
+	"ButtonSouth"		"0x130" # A / X
+	"ButtonEast"		"0x131" # X / Square
+	"ButtonNorth"		"0x133" # Y / Triangle
+	"ButtonWest"		"0x134" # B / Circle
+
+	"ButtonBumperLeft"	"0x136" # L1
+	"ButtonBumperRight"	"0x137" # R1
+	"ButtonTriggerLeft"	"0x138" # L2
+	"ButtonTriggerRight"	"0x139" # R2
+	"ButtonThumbLeft"	"0x13d" # L3
+	"ButtonThumbRight"	"0x13e" # R3
+
+	"ButtonSelect"		"0x13a"
+	"ButtonStart"		"0x13b"
+
+	"ButtonDpadUp"		"0x220"
+	"ButtonDpadDown"	"0x221"
+	"ButtonDpadLeft"	"0x222"
+	"ButtonDpadRight"	"0x223"
+
+	"ButtonMode"		"0x13c" # This is the special button that usually bears the Xbox or Playstation logo
+)
+
 _depends() {
 	if ! [[ -x "$(command -v dialog)" ]]; then
 		echo "dialog not installed." >"$(tty)"
@@ -216,14 +485,16 @@ _EOF_
 }
 
 # Gives the user the ability to enter text manually, pick a file, or use a command palette
-# Usage: _commandPalette
+# Usage: _commandPalette [-r]
 # Returns a text string
 # Example: text="$(_commandPalette)"
 _commandPalette() {
-	local menuOptions selected
+	local menuOptions selected recursion
+	recursion=false
+	[[ "${1}" == "-r" ]] && recursion="true"
 	menuOptions=(
-		"Input"     "Input text manually, requires a keyboard"
-		"Pick"    "Pick a file, including files inside zip files"
+		"Input"    "Input text manually, requires a keyboard"
+		"Pick"     "Pick a file, including files inside zip files"
 		"Commands" "Craft a custom command using a command palette"
 	)
 
@@ -241,6 +512,7 @@ _commandPalette() {
 			echo "${inputText}"
 			;;
 		Pick)
+			#TODO refactor here a bit, because we may want to run commands after launching a file
 			fileSelected="$(_fselect "${basedir}")"
 			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			[[ ! -f "${fileSelected//.zip\/*/.zip}" ]] && { _error "No file was selected." ; return ; }
@@ -250,7 +522,7 @@ _commandPalette() {
 			echo "${fileSelected}"
 			;;
 		Commands)
-			text="$(_craftCommand)"
+			text="$(recursion="${recursion}" _craftCommand)"
 			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
 			echo "${text}"
 			;;
@@ -261,13 +533,14 @@ _commandPalette() {
 # Build a command using a command palette
 # Usage: _craftCommand
 _craftCommand(){
-	local command selected console
-	# Test if function is called recursively
-	if [[ "${FUNCNAME[0]}" != "${FUNCNAME[1]}" ]]; then
-		command="**"
-	else
-		command="||"
-	fi
+	local command selected console recursion
+	"${recursion}" || command="**"
+	## Test if function is called recursively
+	#if [[ "${FUNCNAME[0]}" != "${FUNCNAME[1]}" ]]; then
+	#	command="**"
+	#else
+	#	command="||"
+	#fi
 	selected="$(_menu \
 		--cancel-label "Exit" \
 		-- "${cmdPalette[@]}" )"
@@ -300,9 +573,16 @@ _craftCommand(){
 			command="${command}:${http}"
 			;;
 		key)
-			#TODO implement a _menu with keycodes
-			key="$(_inputbox "Enter uinput keycode" "88")"
-			exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
+			key="$(_menu -- "${keycodes[@]}")"
+			for ((i=0; i<${#keycodes[@]}; i++)); do
+				if [[ "${keycodes[$i]}" == "${key}" ]]; then
+					index=$((i + 1))
+					#workaround, for the shape of the array
+					[[ "${keycodes[$index]}" == "${key}" ]] && index=$(( index + 1))
+					key="${keycodes[$index]}"
+					break
+				fi
+			done
 			command="${command}:${key}"
 			;;
 		coinp1 | coinp2)
@@ -318,13 +598,13 @@ _craftCommand(){
 			while true; do
 				linuxcmd="$(_inputbox "Enter Linux command" "reboot" || return )"
 				exitcode="${?}"; [[ "${exitcode}" -ge 1 ]] && return "${exitcode}"
-				[[ -x "${linuxcmd%% *}" ]] && break
+				command -v "${linuxcmd%% *}" >/dev/null && break
 				_error "${linuxcmd%% *} from ${linuxcmd} does not seam to be a valid command"
 			done
 			command="${command}:${linuxcmd}"
 			;;
 	esac
-	_yesno "Do you wish to add an additional command?" --defaultno && command="${command}$(_craftCommand)"
+	_yesno "Do you wish to add an additional command?" --defaultno && command="${command}||$(_commandPalette -r)"
 	echo "${command}"
 
 }
